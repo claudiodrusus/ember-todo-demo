@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, DragEvent } from "react";
 import Link from "next/link";
 
 interface Todo {
@@ -14,12 +14,13 @@ export default function Todos() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   // Load todos from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem("todos");
     if (stored) {
-      // Migrate old todos that used 'completed' boolean
       const parsed = JSON.parse(stored);
       const migrated = parsed.map((todo: Todo & { completed?: boolean }) => ({
         ...todo,
@@ -64,6 +65,36 @@ export default function Todos() {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
 
+  // Drag and Drop handlers
+  const handleDragStart = (e: DragEvent, id: string) => {
+    setDraggedId(id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragEnd = () => {
+    setDraggedId(null);
+    setDragOverColumn(null);
+  };
+
+  const handleDragOver = (e: DragEvent, status: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverColumn(status);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverColumn(null);
+  };
+
+  const handleDrop = (e: DragEvent, status: Todo["status"]) => {
+    e.preventDefault();
+    if (draggedId) {
+      updateStatus(draggedId, status);
+    }
+    setDraggedId(null);
+    setDragOverColumn(null);
+  };
+
   const todoItems = todos.filter((t) => t.status === "todo");
   const inProgressItems = todos.filter((t) => t.status === "in-progress");
   const completedItems = todos.filter((t) => t.status === "completed");
@@ -88,11 +119,23 @@ export default function Todos() {
           </span>
         </h2>
       </div>
-      <div className="bg-gray-100 rounded-b-xl p-3 min-h-[400px] space-y-3">
+      <div 
+        className={`bg-gray-100 rounded-b-xl p-3 min-h-[400px] space-y-3 transition-all ${
+          dragOverColumn === status ? "bg-blue-100 ring-2 ring-blue-400 ring-inset" : ""
+        }`}
+        onDragOver={(e) => handleDragOver(e, status)}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => handleDrop(e, status)}
+      >
         {items.map((todo) => (
           <div
             key={todo.id}
-            className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 group"
+            draggable
+            onDragStart={(e) => handleDragStart(e, todo.id)}
+            onDragEnd={handleDragEnd}
+            className={`bg-white p-4 rounded-lg shadow-sm border border-gray-100 group cursor-grab active:cursor-grabbing transition-all ${
+              draggedId === todo.id ? "opacity-50 scale-95" : "hover:shadow-md"
+            }`}
           >
             <p className="text-gray-800 mb-3">{todo.text}</p>
             <div className="flex items-center justify-between">
@@ -134,8 +177,10 @@ export default function Todos() {
           </div>
         ))}
         {items.length === 0 && (
-          <div className="text-center py-8 text-gray-400">
-            <p>No tasks</p>
+          <div className={`text-center py-8 border-2 border-dashed rounded-lg ${
+            dragOverColumn === status ? "border-blue-400 text-blue-500" : "border-gray-300 text-gray-400"
+          }`}>
+            <p>{dragOverColumn === status ? "Drop here!" : "Drag tasks here"}</p>
           </div>
         )}
       </div>
@@ -153,7 +198,10 @@ export default function Todos() {
         </Link>
 
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Kanban Board</h1>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">Kanban Board</h1>
+            <p className="text-gray-500 mt-1">Drag and drop tasks between columns</p>
+          </div>
           {todos.length > 0 && (
             <div className="bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
               <span className="text-lg font-semibold text-gray-700">
