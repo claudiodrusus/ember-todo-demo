@@ -71,12 +71,22 @@ export default function Todos() {
           ← Back to Home
         </Link>
 
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">My Todos</h1>
-        <p className="text-gray-600 mb-8">
-          {totalCount === 0
-            ? "No todos yet. Add one below!"
-            : `${completedCount} of ${totalCount} completed`}
-        </p>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">My Todos</h1>
+          {totalCount > 0 && (
+            <div className="bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+              <span className="text-lg font-semibold text-gray-700">
+                <span className="text-green-600">{completedCount}</span>
+                <span className="text-gray-400"> of </span>
+                <span className="text-blue-600">{totalCount}</span>
+                <span className="text-gray-500 ml-1">tasks completed</span>
+              </span>
+            </div>
+          )}
+        </div>
+        {totalCount === 0 && (
+          <p className="text-gray-600 mb-8">No todos yet. Add one below!</p>
+        )}
 
         {/* Add Todo Form */}
         <form onSubmit={addTodo} className="mb-8">
