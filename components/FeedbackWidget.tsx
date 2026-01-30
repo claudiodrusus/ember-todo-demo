@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 // Hardcoded for now - in production, use a stable tunnel URL or your own domain
-const WEBHOOK_URL = "https://sleeve-exclude-larry-beginning.trycloudflare.com/feedback";
+const WEBHOOK_URL = "https://peterson-bridges-via-literally.trycloudflare.com/feedback";
 
 export function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
