@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-const WEBHOOK_URL = process.env.NEXT_PUBLIC_FEEDBACK_WEBHOOK_URL || "http://localhost:3001/feedback";
+// Hardcoded for now - in production, use a stable tunnel URL or your own domain
+const WEBHOOK_URL = "https://reflects-cardiac-mental-gras.trycloudflare.com/feedback";
 
 export function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
